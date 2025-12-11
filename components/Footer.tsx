@@ -41,19 +41,19 @@ const Footer: React.FC = () => {
                 <div className="w-5 h-5 flex items-center justify-center text-gray-400 mr-2 mt-1">
                   <i className="ri-map-pin-line"></i>
                 </div>
-                <span className="text-gray-400">Av. La Paz 1234, Miraflores, Lima, Perú</span>
+                <span className="text-gray-400">Calle Chiwampata 543 - San Blas</span>
               </li>
               <li className="flex items-start">
                 <div className="w-5 h-5 flex items-center justify-center text-gray-400 mr-2 mt-1">
                   <i className="ri-phone-line"></i>
                 </div>
-                <span className="text-gray-400">+51 987 654 321</span>
+                <span className="text-gray-400">+51 958050928</span>
               </li>
               <li className="flex items-start">
                 <div className="w-5 h-5 flex items-center justify-center text-gray-400 mr-2 mt-1">
                   <i className="ri-mail-line"></i>
                 </div>
-                <span className="text-gray-400">info@lifextreme.com</span>
+                <span className="text-gray-400">lifextremeperu@gmail.com</span>
               </li>
             </ul>
             <h4 className="text-lg font-semibold mt-6 mb-4">Newsletter</h4>

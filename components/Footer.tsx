@@ -7,7 +7,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           <div className="lg:col-span-2">
             <a href="#" className="mb-4 inline-block">
-              <img src="https://image.pollinations.ai/prompt/LIFEXTREME%20typography%20logo%20text%20only%20white%20letters%20thick%20black%20outline%20high%20contrast%20white%20background%20clean%20vector%20style?width=600&height=150&fit=contain&nologo=true" alt="Lifextreme" className="h-10 w-auto object-contain" />
+              <img src="/lifextreme-logo.png" alt="Lifextreme" className="h-10 w-auto object-contain" />
             </a>
             <p className="text-gray-400 mb-6">Marketplace de turismo de aventura en Perú y Latinoamérica. Conectamos aventureros con experiencias únicas, equipos de calidad y guías certificados.</p>
             <div className="flex space-x-4">

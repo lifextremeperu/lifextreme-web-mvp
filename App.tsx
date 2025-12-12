@@ -412,8 +412,9 @@ const mockVrExperiences: VRExperience[] = generatedData.vr;
 type LoginRole = 'user' | 'operator' | 'guide' | 'lodging';
 
 export const App: React.FC = () => {
-    // 1. ESTADO DE TOURS: Empieza con los tours de prueba renombrados
+    // 1. ESTADO DE TOURS Y PRODUCTOS
     const [featuredTours, setFeaturedTours] = useState<Tour[]>(mockTours);
+    const [featuredProducts, setFeaturedProducts] = useState<Product[]>(mockEquipmentProducts);
 
     // 2. LECTOR DE FIREBASE (Se ejecuta solo al iniciar la web)
     useEffect(() => {
@@ -450,6 +451,33 @@ export const App: React.FC = () => {
                     console.log(`Tours cargados desde Firebase: ${toursDeLaNube.length}`);
                     // Reemplazamos los tours de prueba por los de Firebase
                     setFeaturedTours(toursDeLaNube);
+                }
+
+                // BUSCA la colección 'products' para Equipos
+                const productsCollection = collection(db, "products");
+                const productsSnapshot = await getDocs(productsCollection);
+                const productsDeLaNube = productsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        title: data.title || "Equipo Sin Título",
+                        description: data.description || "Descripción pendiente",
+                        price: Number(data.price) || 0,
+                        image: data.image || "https://image.pollinations.ai/prompt/camping%20gear%20equipment?width=600&height=400&nologo=true",
+                        department: data.department || "Cusco",
+                        category: data.category || "general", // 'camping', 'climbing', etc.
+                        rating: Number(data.rating) || 5.0,
+                        reviews: data.reviews || 0,
+                        isRental: data.isRental || false,
+                        rentalPrice: data.rentalPrice || "",
+                        stock: data.stock || 10,
+                        ...data
+                    } as unknown as Product;
+                });
+
+                if (productsDeLaNube.length > 0) {
+                    console.log(`Productos cargados desde Firebase: ${productsDeLaNube.length}`);
+                    setFeaturedProducts(productsDeLaNube);
                 }
             } catch (error) {
                 console.error("Error leyendo Firebase:", error);
@@ -497,7 +525,7 @@ export const App: React.FC = () => {
         return matchesGlobalDept && matchesCategory;
     });
 
-    const filteredEquipment = mockEquipmentProducts.filter(product => { // Usamos los mock de Equipment
+    const filteredEquipment = featuredProducts.filter(product => { // Usamos el estado featuredProducts (Firebase)
         const matchesGlobalDept = activeDepartment ? product.department === activeDepartment : true;
         return matchesGlobalDept;
     });
@@ -543,6 +571,53 @@ export const App: React.FC = () => {
     };
 
     const cartTotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+    const openPaymentModal = () => {
+        if (cartItems.length === 0) return;
+        setIsPaymentModalOpen(true);
+        setIsCartOpen(false); // Close cart sidebar
+    }
+
+    const confirmOrderOnWhatsApp = () => {
+        const phoneNumber = "51900000000"; // Reemplazar con el número real de ventas
+        let message = `*¡Hola Lifextreme!* 🏔️\n*YA REALICÉ EL PAGO* 📲\n\nAquí mi pedido:\n`;
+
+        cartItems.forEach(item => {
+            message += `▪️ ${item.quantity}x ${item.title} - S/. ${item.price * item.quantity}\n`;
+        });
+
+        const totalWithTax = (cartTotal * 1.18).toFixed(2);
+
+        message += `\n*MONTO PAGADO: S/. ${totalWithTax}*\n`;
+        message += `Adjunto mi constancia de Yape/Plin. ¡Espero su confirmación!`;
+
+        const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+        setIsPaymentModalOpen(false);
+        setCartItems([]); // Clear cart after "payment"
+    };
+
+    const handleWhatsAppCheckout = () => {
+        if (cartItems.length === 0) return;
+
+        const phoneNumber = "51900000000"; // Reemplazar con el número real de ventas
+        let message = `*¡Hola Lifextreme!* 🏔️\nQuiero reservar lo siguiente:\n\n`;
+
+        cartItems.forEach(item => {
+            message += `▪️ ${item.quantity}x ${item.title} - S/. ${item.price * item.quantity}\n`;
+        });
+
+        // Add 18% tax calculation to match the UI
+        const totalWithTax = (cartTotal * 1.18).toFixed(2);
+
+        message += `\n*TOTAL A PAGAR: S/. ${totalWithTax}*\n\n`;
+        message += `Quedo atento a la confirmación y método de pago. ¡Gracias!`;
+
+        const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+    };
 
     const handleSearch = () => {
         // If we search, we might set searchDepartment which can also update global selectedDepartment if desired
@@ -643,7 +718,7 @@ export const App: React.FC = () => {
                 <div className="container mx-auto px-4 py-3 flex justify-between items-center">
                     <div className="flex items-center">
                         <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView('home'); setSelectedDepartment(''); setSelectedCategory(''); }} className="block">
-                            <img src="https://image.pollinations.ai/prompt/LIFEXTREME%20typography%20logo%20text%20only%20white%20letters%20thick%20black%20outline%20high%20contrast%20white%20background%20clean%20vector%20style?width=600&height=150&fit=contain&nologo=true" alt="Lifextreme" className="h-12 md:h-14 w-auto object-contain" />
+                            <img src="/lifextreme-logo.png" alt="Lifextreme" className="h-12 md:h-14 w-auto object-contain" />
                         </a>
                         <nav className="hidden md:flex ml-10 space-x-6 items-center">
 
@@ -900,6 +975,7 @@ export const App: React.FC = () => {
                                 </div>
                             </div>
                             <button
+                                onClick={openPaymentModal}
                                 className="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all flex justify-between items-center group"
                             >
                                 <span>{t('cart_checkout')}</span>
@@ -1754,7 +1830,7 @@ export const App: React.FC = () => {
                                                             <h4 className="font-bold text-gray-900">{booking.tourTitle}</h4>
                                                             <p className="text-sm text-gray-500">Fecha: {booking.date}</p>
                                                             <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium ${booking.status === 'Confirmado' ? 'bg-green-100 text-green-800' :
-                                                                    booking.status === 'Completado' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
+                                                                booking.status === 'Completado' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
                                                                 }`}>
                                                                 {booking.status}
                                                             </span>
@@ -1801,6 +1877,42 @@ export const App: React.FC = () => {
 
             <Footer />
             <ChatWidget />
+
+            {/* PAYMENT MODAL (YAPE/PLIN) */}
+            {isPaymentModalOpen && (
+                <div className="fixed inset-0 z-[70] flex justify-center items-center p-4">
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsPaymentModalOpen(false)}></div>
+                    <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fade-in-up">
+                        <div className="bg-primary p-6 text-center">
+                            <h2 className="text-2xl font-bold text-white mb-1">¡Casi listo para la aventura!</h2>
+                            <p className="text-white/90 text-sm">Escanea el QR para confirmar tu reserva</p>
+                        </div>
+                        <div className="p-8 flex flex-col items-center">
+                            <div className="mb-6 text-center">
+                                <p className="text-gray-500 mb-2 font-medium">Total a Pagar</p>
+                                <p className="text-4xl font-bold text-gray-900">S/. {(cartTotal * 1.18).toFixed(2)}</p>
+                            </div>
+
+                            <div className="bg-gray-100 p-4 rounded-xl border-2 border-dashed border-gray-300 mb-6 w-full flex flex-col items-center">
+                                {/* Real Plin QR Code */}
+                                <img src="/plin-qr.jpg" alt="QR Plin" className="w-48 h-48 mix-blend-multiply object-contain" />
+                                <div className="flex gap-4 mt-4">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Plin-logo.png/600px-Plin-logo.png?20221021200109" alt="Plin" className="h-8 object-contain" />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2 text-center">A nombre de: <strong>Carmen Palomino</strong></p>
+                            </div>
+
+                            <button onClick={confirmOrderOnWhatsApp} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-transform hover:scale-105 flex justify-center items-center gap-2 mb-3">
+                                <i className="ri-whatsapp-line text-xl"></i>
+                                <span>Ya pagué, Enviar Constancia</span>
+                            </button>
+                            <button onClick={() => setIsPaymentModalOpen(false)} className="text-gray-400 hover:text-gray-600 font-medium text-sm">
+                                Cancelar / Pagar después
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

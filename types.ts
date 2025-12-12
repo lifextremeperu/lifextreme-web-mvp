@@ -21,7 +21,7 @@ export interface Tour {
   rating: number;
   reviews: number;
   image: string;
-  category?: 'adventure' | 'mistico' | 'cultural'; 
+  category?: 'adventure' | 'mistico' | 'cultural';
   tag?: string;
   tagColor?: string;
   difficulty?: string;
@@ -43,6 +43,8 @@ export interface Product {
   badgeColor?: string;
   isRental?: boolean;
   rentalPrice?: string;
+  category?: string;
+  stock?: number;
 }
 
 export interface RetreatHouse {
@@ -94,21 +96,21 @@ export interface UserProfile {
   phone?: string;
   location?: string;
   bio?: string;
-  
+
   // User Fields
   interests?: string[];
-  
+
   // Operator/Lodging Fields
   businessName?: string;
   ruc?: string;
   website?: string;
   address?: string;
-  
+
   // Guide Fields
   yearsExperience?: number;
   languages?: string[];
   certifications?: string[];
-  
+
   // Lodging Specific
   amenities?: string[];
   lodgingType?: 'Hotel' | 'Hostel' | 'Lodge' | 'Glamping';
